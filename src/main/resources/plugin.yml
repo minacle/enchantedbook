@@ -1,0 +1,8 @@
+name: EnchantedBook
+version: "${version}"
+main: moe.minacle.ebook.Plugin
+description: A plugin that allows you to enchant books.
+authors:
+  - Minacle
+website: https://github.com/minacle/enchantedbook
+api-version: "1.20"
