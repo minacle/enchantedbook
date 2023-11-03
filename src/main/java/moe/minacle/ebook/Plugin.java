@@ -89,18 +89,18 @@ public final class Plugin extends JavaPlugin implements Listener {
             if (secondItemType != Material.ENCHANTED_BOOK) {
                 int enchantmentCost;
                 switch (enchantmentRarity) {
-                    case COMMON:
-                    case UNCOMMON:
-                        enchantmentCost = 1;
-                        break;
-                    case RARE:
-                        enchantmentCost = 2;
-                        break;
-                    case VERY_RARE:
-                        enchantmentCost = 4;
-                        break;
-                    default:
-                        return;
+                case COMMON:
+                case UNCOMMON:
+                    enchantmentCost = 1;
+                    break;
+                case RARE:
+                    enchantmentCost = 2;
+                    break;
+                case VERY_RARE:
+                    enchantmentCost = 4;
+                    break;
+                default:
+                    return;
                 }
                 enchantmentCost *= enchantmentLevel;
                 totalEnchantmentCost += enchantmentCost;
