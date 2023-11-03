@@ -107,9 +107,11 @@ public final class Plugin extends JavaPlugin implements Listener {
             }
             ((EnchantmentStorageMeta)resultMeta).addStoredEnchant(enchantment, enchantmentLevel, true);
         }
-        if (secondItemType != Material.ENCHANTED_BOOK)
-            totalEnchantmentCost += Math.max((secondItemRepairCost + 1) / 2 - 1, 0);
-        ((Repairable)resultMeta).setRepairCost(secondItemRepairCost);
+        if (secondItemRepairCost > 0) {
+            if (secondItemType != Material.ENCHANTED_BOOK)
+                totalEnchantmentCost += (secondItemRepairCost + 1) / 2 - 1;
+            ((Repairable)resultMeta).setRepairCost(secondItemRepairCost);
+        }
         result.setItemMeta(resultMeta);
         anvilInventory.setRepairCost(totalEnchantmentCost);
         event.setResult(result);
