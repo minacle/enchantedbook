@@ -6,3 +6,4 @@ authors:
   - Minacle
 website: https://github.com/minacle/enchantedbook
 api-version: "1.20"
+folia-supported: true
