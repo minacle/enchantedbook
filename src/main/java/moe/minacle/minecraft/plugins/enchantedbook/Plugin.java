@@ -1,4 +1,4 @@
-package moe.minacle.ebook;
+package moe.minacle.minecraft.plugins.enchantedbook;
 
 import java.util.Map;
 
@@ -14,6 +14,7 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 public final class Plugin extends JavaPlugin implements Listener {
 
@@ -29,7 +30,7 @@ public final class Plugin extends JavaPlugin implements Listener {
      * @return
      *  the cost of the enchantment, or -1 if the rarity is invalid
      */
-    private static int getEnchantmentCost(Enchantment enchantment, int level) {
+    private static int getEnchantmentCost(final @NotNull Enchantment enchantment, int level) {
         switch (enchantment.getRarity()) {
         case COMMON:
         case UNCOMMON:
@@ -43,18 +44,8 @@ public final class Plugin extends JavaPlugin implements Listener {
         }
     }
 
-    // MARK: JavaPlugin
-
-    @Override
-    public void onEnable() {
-        super.onEnable();
-        getServer().getPluginManager().registerEvents(this, this);
-    }
-
-    // MARK: Listener
-
     @EventHandler
-    void onPrepareAnvil(PrepareAnvilEvent event) {
+    private void onPrepareAnvil(final @NotNull PrepareAnvilEvent event) {
         final AnvilInventory anvilInventory = event.getInventory();
         final ItemStack firstItem;
         final ItemMeta firstItemMeta;
@@ -182,11 +173,18 @@ public final class Plugin extends JavaPlugin implements Listener {
                 ((Repairable)resultMeta).setRepairCost((Math.max(firstItemRepairCost, secondItemRepairCost) + 1) * 2 - 1);
             }
         }
-        else {
+        else
             ((Repairable)resultMeta).setRepairCost(secondItemRepairCost);
-        }
         result.setItemMeta(resultMeta);
         anvilInventory.setRepairCost(totalEnchantmentCost);
         event.setResult(result);
+    }
+
+    // MARK: JavaPlugin
+
+    @Override
+    public void onEnable() {
+        super.onEnable();
+        getServer().getPluginManager().registerEvents(this, this);
     }
 }
