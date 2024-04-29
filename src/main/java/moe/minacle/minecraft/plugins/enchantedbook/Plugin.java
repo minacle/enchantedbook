@@ -3,6 +3,7 @@ package moe.minacle.minecraft.plugins.enchantedbook;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -19,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class Plugin extends JavaPlugin implements Listener {
+
+    private static final int BSTATS_PLUGIN_ID = 20341;
 
     private static final Integer ENCHANTMENT_WEIGHT_COMMON = 10;
     private static final Integer ENCHANTMENT_WEIGHT_UNCOMMON = 5;
@@ -284,6 +287,7 @@ public final class Plugin extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         super.onEnable();
+        new Metrics(this, BSTATS_PLUGIN_ID);
         getServer().getPluginManager().registerEvents(this, this);
     }
 }
