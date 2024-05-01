@@ -1,5 +1,6 @@
 package moe.minacle.minecraft.plugins.enchantedbook;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -15,8 +16,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class Plugin extends JavaPlugin implements Listener {
+
+    private static final Integer ENCHANTMENT_WEIGHT_COMMON = 10;
+    private static final Integer ENCHANTMENT_WEIGHT_UNCOMMON = 5;
+    private static final Integer ENCHANTMENT_WEIGHT_RARE = 2;
+    private static final Integer ENCHANTMENT_WEIGHT_VERY_RARE = 1;
 
     /**
      * Calculates the cost of an enchantment based on its rarity and level.
@@ -31,6 +38,55 @@ public final class Plugin extends JavaPlugin implements Listener {
      *  the cost of the enchantment, or -1 if the rarity is invalid
      */
     private static int getEnchantmentCost(final @NotNull Enchantment enchantment, int level) {
+        int enchantmentCost;
+        final Object handle;
+        handle = getHandle(enchantment);
+        if (handle == null)
+            return -1;
+        if ((enchantmentCost = getEnchantmentCostByWeight(handle, level)) >= 0)
+            return enchantmentCost;
+        if ((enchantmentCost = getEnchantmentCostByAnvilCost(handle, level)) >= 0)
+            return enchantmentCost;
+        try {
+            enchantmentCost = getEnchantmentCostByRarity(enchantment, level);
+        }
+        catch (final UnsupportedOperationException exception) {
+        }
+        if (enchantmentCost >= 0)
+            return enchantmentCost;
+        Bukkit.getLogger().severe("Enchantment cost calculation is not supported for this server version.");
+        return -1;
+    }
+
+    @SuppressWarnings("unused")
+    private static int getEnchantmentCostByAnvilCost(final @NotNull Enchantment enchantment, int level) {
+        return getEnchantmentCostByAnvilCost(getHandle(enchantment), level);
+    }
+
+    private static int getEnchantmentCostByAnvilCost(final @Nullable Object handle, int level) {
+        Method getAnvilCostMethod = null;
+        final Object anvilCost;
+        try {
+            getAnvilCostMethod = handle.getClass().getMethod("getAnvilCost");
+        }
+        catch (final Exception exception) {
+            return -1;
+        }
+        if (getAnvilCostMethod == null)
+            return -1;
+        try {
+            anvilCost = getAnvilCostMethod.invoke(handle);
+        }
+        catch (final Exception exception) {
+            return -1;
+        }
+        if (anvilCost instanceof Integer)
+            return (int)anvilCost * level;
+        return -1;
+    }
+
+    @SuppressWarnings({"deprecation", "removal"})
+    private static int getEnchantmentCostByRarity(final @NotNull Enchantment enchantment, int level) {
         switch (enchantment.getRarity()) {
         case COMMON:
         case UNCOMMON:
@@ -41,6 +97,49 @@ public final class Plugin extends JavaPlugin implements Listener {
             return level * 4;
         default:
             return -1;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static int getEnchantmentCostByWeight(final @NotNull Enchantment enchantment, int level) {
+        return getEnchantmentCostByWeight(getHandle(enchantment), level);
+    }
+
+    private static int getEnchantmentCostByWeight(final @Nullable Object handle, int level) {
+        Method getWeightMethod = null;
+        final Object weight;
+        try {
+            getWeightMethod = handle.getClass().getMethod("getWeight");
+        }
+        catch (final Exception exception) {
+            return -1;
+        }
+        if (getWeightMethod == null)
+            return -1;
+        try {
+            weight = getWeightMethod.invoke(handle);
+        }
+        catch (final Exception exception) {
+            return -1;
+        }
+        if (
+            ENCHANTMENT_WEIGHT_COMMON.equals(weight) ||
+            ENCHANTMENT_WEIGHT_UNCOMMON.equals(weight)
+        )
+            return level;
+        if (ENCHANTMENT_WEIGHT_RARE.equals(weight))
+            return level * 2;
+        if (ENCHANTMENT_WEIGHT_VERY_RARE.equals(weight))
+            return level * 4;
+        return -1;
+    }
+
+    private static @Nullable Object getHandle(final @NotNull Enchantment enchantment) {
+        try {
+            return enchantment.getClass().getMethod("getHandle").invoke(enchantment);
+        }
+        catch (final Exception exception) {
+            return null;
         }
     }
 
