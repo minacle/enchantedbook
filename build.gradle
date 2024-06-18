@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id "java"
     id "io.github.goooler.shadow" version "8.1.7"
-    id "xyz.jpenilla.run-paper" version "2.2.4"
+    id "xyz.jpenilla.run-paper" version "2.3.0"
 }
 
 group = "moe.minacle.minecraft"
@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT"
+    compileOnly "io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT"
     implementation "org.bstats:bstats-bukkit:3.0.2"
     implementation "org.jetbrains:annotations:24.1.0"
 }
@@ -48,7 +48,7 @@ processResources {
 
 tasks {
     runServer {
-        minecraftVersion "1.20.6"
+        minecraftVersion "1.21"
     }
 }
 
