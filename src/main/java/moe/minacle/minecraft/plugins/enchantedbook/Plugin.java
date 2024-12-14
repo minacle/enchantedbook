@@ -1,11 +1,13 @@
 package moe.minacle.minecraft.plugins.enchantedbook;
 
-import java.lang.reflect.Method;
 import java.util.Map;
+
+import org.jetbrains.annotations.NotNull;
 
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.enchantments.CraftEnchantment;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,21 +17,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
+import org.bukkit.inventory.view.AnvilView;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class Plugin extends JavaPlugin implements Listener {
 
     private static final int BSTATS_PLUGIN_ID = 20341;
 
-    private static final Integer ENCHANTMENT_WEIGHT_COMMON = 10;
-    private static final Integer ENCHANTMENT_WEIGHT_UNCOMMON = 5;
-    private static final Integer ENCHANTMENT_WEIGHT_RARE = 2;
-    private static final Integer ENCHANTMENT_WEIGHT_VERY_RARE = 1;
-
     /**
-     * Calculates the cost of an enchantment based on its rarity and level.
+     * Calculates the cost of an enchantment based on its anvil cost and level.
      *
      * @param enchantment
      *  the enchantment to calculate the cost for
@@ -38,117 +34,27 @@ public final class Plugin extends JavaPlugin implements Listener {
      *  the level of the enchantment
      *
      * @return
-     *  the cost of the enchantment, or -1 if the rarity is invalid
+     *  the cost of the enchantment, or -1 if the enchantment is invalid
      */
     private static int getEnchantmentCost(final @NotNull Enchantment enchantment, int level) {
-        int enchantmentCost;
-        final Object handle;
-        handle = getHandle(enchantment);
-        if (handle == null)
+        final int anvilCost;
+        final CraftEnchantment craftEnchantment;
+        final net.minecraft.world.item.enchantment.Enchantment nmsEnchantment;
+        if (level <= 0)
             return -1;
-        if ((enchantmentCost = getEnchantmentCostByWeight(handle, level)) >= 0)
-            return enchantmentCost;
-        if ((enchantmentCost = getEnchantmentCostByAnvilCost(handle, level)) >= 0)
-            return enchantmentCost;
-        try {
-            enchantmentCost = getEnchantmentCostByRarity(enchantment, level);
-        }
-        catch (final UnsupportedOperationException exception) {
-        }
-        if (enchantmentCost >= 0)
-            return enchantmentCost;
-        Bukkit.getLogger().severe("Enchantment cost calculation is not supported for this server version.");
-        return -1;
-    }
-
-    @SuppressWarnings("unused")
-    private static int getEnchantmentCostByAnvilCost(final @NotNull Enchantment enchantment, int level) {
-        return getEnchantmentCostByAnvilCost(getHandle(enchantment), level);
-    }
-
-    private static int getEnchantmentCostByAnvilCost(final @Nullable Object handle, int level) {
-        Method getAnvilCostMethod = null;
-        final Object anvilCost;
-        try {
-            getAnvilCostMethod = handle.getClass().getMethod("getAnvilCost");
-        }
-        catch (final Exception exception) {
+        if ((craftEnchantment = (CraftEnchantment)enchantment) == null)
             return -1;
-        }
-        if (getAnvilCostMethod == null)
+        if ((nmsEnchantment = craftEnchantment.getHandle()) == null)
             return -1;
-        try {
-            anvilCost = getAnvilCostMethod.invoke(handle);
-        }
-        catch (final Exception exception) {
+        if ((anvilCost = nmsEnchantment.getAnvilCost()) <= 0)
             return -1;
-        }
-        if (anvilCost instanceof Integer)
-            return (int)anvilCost * level;
-        return -1;
-    }
-
-    @SuppressWarnings({"deprecation", "removal"})
-    private static int getEnchantmentCostByRarity(final @NotNull Enchantment enchantment, int level) {
-        switch (enchantment.getRarity()) {
-        case COMMON:
-        case UNCOMMON:
-            return level;
-        case RARE:
-            return level * 2;
-        case VERY_RARE:
-            return level * 4;
-        default:
-            return -1;
-        }
-    }
-
-    @SuppressWarnings("unused")
-    private static int getEnchantmentCostByWeight(final @NotNull Enchantment enchantment, int level) {
-        return getEnchantmentCostByWeight(getHandle(enchantment), level);
-    }
-
-    private static int getEnchantmentCostByWeight(final @Nullable Object handle, int level) {
-        Method getWeightMethod = null;
-        final Object weight;
-        try {
-            getWeightMethod = handle.getClass().getMethod("getWeight");
-        }
-        catch (final Exception exception) {
-            return -1;
-        }
-        if (getWeightMethod == null)
-            return -1;
-        try {
-            weight = getWeightMethod.invoke(handle);
-        }
-        catch (final Exception exception) {
-            return -1;
-        }
-        if (
-            ENCHANTMENT_WEIGHT_COMMON.equals(weight) ||
-            ENCHANTMENT_WEIGHT_UNCOMMON.equals(weight)
-        )
-            return level;
-        if (ENCHANTMENT_WEIGHT_RARE.equals(weight))
-            return level * 2;
-        if (ENCHANTMENT_WEIGHT_VERY_RARE.equals(weight))
-            return level * 4;
-        return -1;
-    }
-
-    private static @Nullable Object getHandle(final @NotNull Enchantment enchantment) {
-        try {
-            return enchantment.getClass().getMethod("getHandle").invoke(enchantment);
-        }
-        catch (final Exception exception) {
-            return null;
-        }
+        return Math.max(anvilCost / 2 * level, 1);
     }
 
     @EventHandler
     private void onPrepareAnvil(final @NotNull PrepareAnvilEvent event) {
         final AnvilInventory anvilInventory = event.getInventory();
+        final AnvilView anvilView = event.getView();
         final ItemStack firstItem;
         final ItemMeta firstItemMeta;
         final Material firstItemType;
@@ -278,7 +184,7 @@ public final class Plugin extends JavaPlugin implements Listener {
         else
             ((Repairable)resultMeta).setRepairCost(secondItemRepairCost);
         result.setItemMeta(resultMeta);
-        anvilInventory.setRepairCost(totalEnchantmentCost);
+        anvilView.setRepairCost(totalEnchantmentCost);
         event.setResult(result);
     }
 
