@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.enchantments.CraftEnchantment;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -37,18 +36,8 @@ public final class Plugin extends JavaPlugin implements Listener {
      *  the cost of the enchantment, or -1 if the enchantment is invalid
      */
     private static int getEnchantmentCost(final @NotNull Enchantment enchantment, int level) {
-        final int anvilCost;
-        final CraftEnchantment craftEnchantment;
-        final net.minecraft.world.item.enchantment.Enchantment nmsEnchantment;
-        if (level <= 0)
-            return -1;
-        if ((craftEnchantment = (CraftEnchantment)enchantment) == null)
-            return -1;
-        if ((nmsEnchantment = craftEnchantment.getHandle()) == null)
-            return -1;
-        if ((anvilCost = nmsEnchantment.getAnvilCost()) <= 0)
-            return -1;
-        return Math.max(anvilCost / 2 * level, 1);
+        final int anvilCost = enchantment.getAnvilCost();
+        return anvilCost > 0 ? Math.max(anvilCost / 2 * level, 1) : -1;
     }
 
     @EventHandler
