@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "moe.minacle.minecraft"
-version = "0.6.1"
+version = "0.6.2"
 
 repositories {
     mavenCentral()
