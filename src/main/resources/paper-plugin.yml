@@ -5,4 +5,5 @@ description: A plugin to extract enchantments from your armour into an Enchanted
 authors:
   - Minacle
 website: https://modrinth.com/plugin/enchantedbook
-api-version: "1.21.5"
+api-version: "1.21"
+folia-supported: true
