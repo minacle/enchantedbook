@@ -5,21 +5,13 @@ plugins {
 }
 
 group = "moe.minacle.minecraft"
-version = "0.6.2"
+version = "0.6.3"
 
 repositories {
     mavenCentral()
     maven {
         name = "PaperMC"
         url = uri("https://repo.papermc.io/repository/maven-public/")
-    }
-    maven {
-        name = "Sonatype"
-        url = uri("https://oss.sonatype.org/content/groups/public/")
-    }
-    maven {
-        name = "Sonatype"
-        url = uri("https://s01.oss.sonatype.org/content/groups/public/")
     }
 }
 
